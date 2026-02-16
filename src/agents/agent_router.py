@@ -8,7 +8,6 @@ from src.agents.exchange_agent import ExchangeAgent
 
 
 class AgentType(Enum):
-    """Enum for agent types."""
     TRIAGE = "triage"
     CREDIT = "credit"
     INTERVIEW = "interview"
@@ -16,10 +15,7 @@ class AgentType(Enum):
 
 
 class AgentRouter:
-    """Routes user requests to appropriate agents."""
-    
     def __init__(self):
-        """Initialize agent router with all agents."""
         self.triage_agent = TriageAgent()
         self.credit_agent = CreditAgent()
         self.interview_agent = CreditInterviewAgent()
@@ -30,11 +26,6 @@ class AgentRouter:
         self.conversation_state: Dict[str, Any] = {}
     
     async def process_message(self, user_message: str) -> str:
-        """
-        Process user message by routing to appropriate agent.
-        Returns response from agent.
-        """
-        
         # Start with triage if not authenticated
         if not self.authenticated_cpf:
             return await self.handle_triage(user_message)
@@ -44,7 +35,6 @@ class AgentRouter:
     
     async def handle_triage(self, user_message: str) -> str:
         """Handle authentication and initial triage."""
-        # Check if this is first message
         if self.current_agent != AgentType.TRIAGE:
             self.current_agent = AgentType.TRIAGE
             response = await self.triage_agent.start_greeting()
