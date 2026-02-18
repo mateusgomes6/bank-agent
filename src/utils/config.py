@@ -4,8 +4,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # LLM Configuration
-LLM_MODEL = os.getenv("LLM_MODEL", "gpt-4")
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "google")  # "openai" or "google"
+LLM_MODEL = os.getenv("LLM_MODEL", "gemini-1.5-flash")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 # File Paths
 import sys

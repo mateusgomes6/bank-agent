@@ -1,12 +1,10 @@
 """Credit Interview Agent - Financial interview for credit score recalculation."""
 from typing import Optional, Dict, Any
-from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage
 from src.agents.base_agent import BaseAgent
 from src.tools.score_tools import calculate_credit_score, update_score_in_database
 from src.tools.csv_tools import get_cliente_by_cpf
 from src.utils.constants import SCORE_WEIGHTS
-from src.utils.config import GOOGLE_API_KEY, LLM_MODEL
 
 
 class CreditInterviewAgent(BaseAgent):

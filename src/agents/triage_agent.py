@@ -1,11 +1,9 @@
 """Triage Agent - Customer authentication and routing."""
 from typing import Tuple, Optional, Dict, Any
-from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage
 from src.agents.base_agent import BaseAgent
 from src.tools.auth_tools import authenticate_client, validate_cpf_format, validate_date_format
 from src.utils.constants import MESSAGES
-from src.utils.config import GOOGLE_API_KEY, LLM_MODEL
 
 
 class TriageAgent(BaseAgent):

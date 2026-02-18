@@ -35,40 +35,41 @@ class AgentRouter:
     
     async def handle_triage(self, user_message: str) -> str:
         """Handle authentication and initial triage."""
+        # First time - show greeting and ask for CPF
         if self.current_agent != AgentType.TRIAGE:
             self.current_agent = AgentType.TRIAGE
-            response = await self.triage_agent.start_greeting()
-            return response
-        
-        # Parse authentication attempts
-        if "cpf" not in self.conversation_state:
+            greeting = await self.triage_agent.start_greeting()
+            self.conversation_state["auth_step"] = "awaiting_cpf"
+            return greeting + "\n\nPara começar, preciso verificar algumas informações. Qual é o seu CPF? (11 dígitos)"
+
+        # First step - receive CPF
+        if self.conversation_state.get("auth_step") == "awaiting_cpf":
             self.conversation_state["cpf"] = user_message.strip()
             self.conversation_state["auth_step"] = "awaiting_birth_date"
             return "Agora, qual é a sua data de nascimento? (formato: YYYY-MM-DD, ex: 1990-05-15)"
-        
-        # Second step - birth date
+
+        # Second step - receive birth date and authenticate
         if self.conversation_state.get("auth_step") == "awaiting_birth_date":
-            cpf = self.conversation_state["cpf"]
+            cpf = self.conversation_state.get("cpf")
             birth_date = user_message.strip()
-            
+
             # Attempt authentication
             success, auth_message = self.triage_agent.authenticate_with_credentials(cpf, birth_date)
-            
+
             if success:
                 self.authenticated_cpf = cpf
                 self.conversation_state = {}  # Clear state
                 return auth_message + "\n\nComo posso ajudá-lo?"
-            
+
             # Failed authentication
             if self.triage_agent.has_max_attempts_exceeded():
                 self.reset()
                 return auth_message
-            
+
             # Ask for retry
-            self.conversation_state["cpf"] = None
-            self.conversation_state["auth_step"] = None
+            self.conversation_state = {"auth_step": "awaiting_cpf"}
             return auth_message + "\n\nGostaria de tentar novamente? Por favor, forneça seu CPF:"
-        
+
         return "Desculpe, algo deu errado. Vamos começar novamente. Qual é o seu CPF?"
     
     async def route_authenticated_message(self, user_message: str) -> str:

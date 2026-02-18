@@ -1,12 +1,10 @@
 """Credit Agent - Credit limit consultation and increase requests."""
 from typing import Optional, Dict, Any
 from datetime import datetime
-from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage
 from src.agents.base_agent import BaseAgent
 from src.tools.csv_tools import get_cliente_by_cpf, create_credit_limit_request, update_credit_limit_request_status, get_client_latest_request
 from src.tools.score_tools import check_credit_limit_approval
-from src.utils.config import GOOGLE_API_KEY, LLM_MODEL
 
 
 class CreditAgent(BaseAgent):

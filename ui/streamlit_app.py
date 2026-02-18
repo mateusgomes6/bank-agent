@@ -53,7 +53,7 @@ if "chat_history" not in st.session_state:
 
 # Header
 st.title("🏦 Banco Ágil")
-st.subtitle("Sistema de Atendimento Inteligente ao Cliente")
+st.subheader("Sistema de Atendimento Inteligente ao Cliente")
 
 # Sidebar
 with st.sidebar:
@@ -198,6 +198,6 @@ st.divider()
 st.markdown("""
     <div style='text-align: center; color: gray; font-size: 12px;'>
         © 2026 Banco Ágil - Sistema de Atendimento Inteligente<br>
-        <small>Powered by LangChain + Gemini API</small>
+        <small>Powered by LangChain + Google Gemini</small>
     </div>
 """, unsafe_allow_html=True)

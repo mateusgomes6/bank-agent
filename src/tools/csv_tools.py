@@ -10,7 +10,8 @@ def read_csv(file_path: str) -> pd.DataFrame:
     """Read a CSV file and return as DataFrame."""
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"File not found: {file_path}")
-    return pd.read_csv(file_path)
+    # Read CPF as string to avoid type mismatch
+    return pd.read_csv(file_path, dtype={'cpf': str, 'cpf_cliente': str})
 
 
 def write_csv(file_path: str, data: pd.DataFrame) -> bool:
@@ -42,11 +43,13 @@ def get_cliente_by_cpf(cpf: str) -> Optional[Dict[str, Any]]:
     """Retrieve client data by CPF."""
     try:
         df = read_csv(CLIENTES_CSV)
-        cliente = df[df['cpf'] == cpf]
-        
+        # Ensure CPF is string for comparison
+        df['cpf'] = df['cpf'].astype(str)
+        cliente = df[df['cpf'] == str(cpf)]
+
         if cliente.empty:
             return None
-        
+
         return cliente.iloc[0].to_dict()
     except Exception as e:
         print(f"Error retrieving client: {e}")
@@ -57,11 +60,12 @@ def update_cliente_score(cpf: str, new_score: float) -> bool:
     """Update client's credit score."""
     try:
         df = read_csv(CLIENTES_CSV)
-        mask = df['cpf'] == cpf
-        
+        df['cpf'] = df['cpf'].astype(str)
+        mask = df['cpf'] == str(cpf)
+
         if not mask.any():
             return False
-        
+
         df.loc[mask, 'score'] = new_score
         return write_csv(CLIENTES_CSV, df)
     except Exception as e:

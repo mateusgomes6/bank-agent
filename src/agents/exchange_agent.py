@@ -1,10 +1,8 @@
 """Exchange Agent - Currency exchange rate queries."""
 from typing import Optional
-from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage
 from src.agents.base_agent import BaseAgent
 from src.tools.exchange_tools import get_exchange_rate, format_exchange_rate
-from src.utils.config import GOOGLE_API_KEY, LLM_MODEL
 
 
 class ExchangeAgent(BaseAgent):

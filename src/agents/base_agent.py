@@ -1,23 +1,34 @@
 """Base agent class for all specialized agents."""
 from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional, List
+from langchain_openai import ChatOpenAI
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
-from src.utils.config import GOOGLE_API_KEY, LLM_MODEL
+from src.utils.config import OPENAI_API_KEY, GOOGLE_API_KEY, LLM_MODEL, LLM_PROVIDER
 
 
 class BaseAgent(ABC):
     """Base class for all banking agents."""
-    
+
     def __init__(self, agent_name: str, agent_role: str):
         """Initialize base agent."""
         self.agent_name = agent_name
         self.agent_role = agent_role
-        self.llm = ChatGoogleGenerativeAI(
-            model=LLM_MODEL,
-            google_api_key=GOOGLE_API_KEY,
-            temperature=0.7
-        )
+
+        # Choose LLM provider based on configuration
+        if LLM_PROVIDER == "google":
+            self.llm = ChatGoogleGenerativeAI(
+                model=LLM_MODEL,
+                google_api_key=GOOGLE_API_KEY,
+                temperature=0.7
+            )
+        else:  # default to openai
+            self.llm = ChatOpenAI(
+                model=LLM_MODEL,
+                api_key=OPENAI_API_KEY,
+                temperature=0.7
+            )
+
         self.context: Dict[str, Any] = {}
         self.conversation_history: List[BaseMessage] = []
     
