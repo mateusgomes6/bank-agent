@@ -85,11 +85,33 @@ O **Streamlit** encaixa-se perfeitamente no desafio ao oferecer uma interface de
 - ✅ Tratamento robusto de erros e exceções
 - ✅ Experiência transparente entre agentes (cliente não percebe mudanças)
 
+## ⚡ Desafios Enfrentados e Soluções
+
+### 1. Tipagem de CPF na leitura de CSV
+- **Problema**: O Pandas lia o campo CPF como `int64` (ex: `12345678901`), mas a comparação era feita com `str`. Isso fazia a autenticação falhar silenciosamente mesmo com credenciais corretas.
+- **Solução**: Forçar a leitura do CPF como string via `dtype={'cpf': str}` no `pd.read_csv()` e adicionar conversão explícita com `astype(str)` antes das comparações em `csv_tools.py`.
+
+### 2. Fluxo de autenticação confuso no retry
+- **Problema**: Quando a autenticação falhava, o estado do fluxo não era resetado corretamente. O sistema pulava a etapa de pedir o CPF e ia direto para a data de nascimento, causando erros em cascata.
+- **Solução**: Reestruturar o `AgentRouter.handle_triage()` com estados explícitos (`awaiting_cpf`, `awaiting_birth_date`) e garantir que o `conversation_state` fosse resetado corretamente a cada nova tentativa.
+
+### 3. Compatibilidade entre provedores de LLM
+- **Problema**: O projeto precisava suportar tanto Google Gemini (gratuito) quanto OpenAI (pago), mas as interfaces das bibliotecas são diferentes.
+- **Solução**: Criar uma classe `GoogleGeminiWrapper` em `base_agent.py` que implementa a mesma interface `.invoke()` do LangChain, permitindo trocar de provedor alterando apenas variáveis de ambiente (`LLM_PROVIDER`, `LLM_MODEL`) no `.env`.
+
+### 4. Orquestração multi-agente sem perda de contexto
+- **Problema**: Ao transferir o cliente entre agentes (ex: Triagem → Crédito → Entrevista), o contexto de autenticação e dados do cliente se perdiam.
+- **Solução**: Centralizar o estado no `AgentRouter`, que mantém o `authenticated_cpf` e `conversation_state` compartilhados entre todos os agentes, garantindo continuidade na experiência.
+
+### 5. Validação de entrada do usuário em formato livre
+- **Problema**: O usuário poderia digitar datas em formatos variados (DD/MM/YYYY, YYYY-MM-DD) ou CPFs com pontuação, causando falhas na validação.
+- **Solução**: Implementar funções de validação robustas em `auth_tools.py` que limpam formatação (`replace("-", "").replace(".", "")`) e validam com `datetime.strptime()` antes de processar.
+
 ## 🚀 Instalação e Execução
 
 ### Pré-requisitos
 - Python 3.8+
-- Chave de API da OpenAI
+- Chave de API do Google Gemini (gratuita) ou OpenAI
 
 ### Instalação
 
@@ -109,7 +131,24 @@ pip install -r requirements.txt
 
 # Configure variáveis de ambiente
 cp .env.example .env
-# Edite .env com sua chave de API do Google
+# Edite .env com sua chave de API
+```
+
+### Configuração do .env
+
+```env
+# Escolha o provedor: "google" (gratuito) ou "openai" (pago)
+LLM_PROVIDER=google
+
+# Google Gemini (gratuito - obtenha em https://aistudio.google.com/app/apikey)
+GOOGLE_API_KEY=sua_chave_google_aqui
+
+# OpenAI (alternativa paga)
+OPENAI_API_KEY=sua_chave_openai_aqui
+
+# Modelo (Google: gemini-pro | OpenAI: gpt-4o-mini)
+LLM_MODEL=gemini-pro
+MAX_AUTH_ATTEMPTS=3
 ```
 
 ### Execução
@@ -123,6 +162,35 @@ streamlit run ui/streamlit_app.py
 ```bash
 python -m src.main
 ```
+
+### Testes
+
+O projeto inclui testes unitários com **pytest** para validar os componentes principais:
+
+```bash
+# Executar todos os testes
+pytest tests/ -v
+
+# Executar apenas testes de agentes
+pytest tests/test_agents.py -v
+
+# Executar apenas testes de ferramentas
+pytest tests/test_tools.py -v
+```
+
+**Cobertura dos testes:**
+- **test_agents.py**: Inicialização do agente de triagem, validação de CPF/data, autenticação com credenciais válidas/inválidas, limite de tentativas
+- **test_tools.py**: Ferramentas de autenticação, cálculo de score de crédito (empregado formal, autônomo, desempregado, múltiplos dependentes), leitura de dados CSV
+
+### Dados para Teste
+
+| CPF | Data Nascimento | Nome |
+|-----|-----------------|------|
+| 12345678901 | 1990-05-15 | João Silva |
+| 98765432100 | 1988-12-20 | Maria Santos |
+| 55544433322 | 1995-07-10 | Pedro Oliveira |
+| 11122233344 | 1992-03-25 | Ana Costa |
+| 66677788899 | 1998-11-05 | Carlos Mendes |
 
 ## 📂 Estrutura de Pastas
 
